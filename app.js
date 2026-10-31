@@ -1023,7 +1023,7 @@ async function generateWithAI() {
     const text = await res.text();
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error('Sin respuesta válida');
-    const budget = JSON.parse(jsonMatch[0]);
+    const budget = JSON.parse(jsonMatch[0].replace(/\n/g, '\\n'));
     if (!budget.name) throw new Error('Presupuesto sin nombre');
     (budget.mats || []).forEach(m => { m.id = uid(); });
     (budget.etapas || []).forEach(e => { e.id = uid(); });
