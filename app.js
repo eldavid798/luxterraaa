@@ -1004,100 +1004,35 @@ function closeModalById(id) {
 
 async function generateWithAI() {
   const prompt = document.getElementById('ai-prompt').value.trim();
-  if (!prompt) {
-    showAIError('Escribe una descripción de la obra primero.');
-    return;
-  }
-
+  if (!prompt) { showAIError('Escribe una descripción de la obra primero.'); return; }
   const btn = document.getElementById('ai-gen-btn');
   btn.disabled = true;
-  document.getElementById('ai-btn-text').innerHTML =
-    '<span class="ai-spinner"></span>Generando…';
+  document.getElementById('ai-btn-text').innerHTML = '<span class="ai-spinner"></span>Generando…';
   document.getElementById('ai-error').classList.add('hidden');
-
-  const systemPrompt = `Eres un asistente experto en construcción y remodelación en México.
-Tu tarea es generar presupuestos de obra estructurados en formato JSON.
-Cuando el usuario describa una obra, debes responder ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin backticks, sin explicaciones.
-
-El JSON debe tener exactamente esta estructura:
-{
-  "name": "Nombre corto de la obra",
-  "variant": "Descripción adicional o variante (puede ser vacío)",
-  "notes": "Condiciones, observaciones o notas importantes",
-  "mats": [
-    {
-      "name": "Nombre del material",
-      "store": "Tienda sugerida (Home Depot, Construrama, etc.)",
-      "qty": 10,
-      "unit": "pza",
-      "price": 85.00
-    }
-  ],
-  "etapas": [
-    {
-      "name": "Nombre de la etapa",
-      "activities": "Actividad 1\nActividad 2\nActividad 3",
-      "days": "2-3 días",
-      "cost": 3500.00
-    }
-  ]
-}
-
-Reglas importantes:
-- Las unidades válidas son: pza, m², m, m³, kg, lt, rollo, bolsa, galón, global
-- Los precios deben ser en pesos mexicanos (MXN), realistas para el mercado actual
-- Incluye todos los materiales necesarios, no omitas consumibles (clavos, tornillos, mezcla, etc.)
-- Las etapas representan mano de obra: sepáralas de forma lógica
-- Si el usuario no da precios, estímalos con base en el mercado de Baja California / Ensenada, MX
-- Responde SOLO con el JSON, nada más`;
-
   try {
-    const response = await fetch('/api/ai-generate', {
+    const res = await fetch('/api/ai-generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: systemPrompt,
+        max_tokens: 2000,
+        system: 'Eres experto en construcción en México. Responde ÚNICAMENTE con JSON válido, sin texto adicional, sin backticks, sin explicaciones. Estructura: {"name":"string","variant":"string","notes":"string","mats":[{"name":"string","store":"string","qty":1,"unit":"pza","price":0}],"etapas":[{"name":"string","activities":"string","days":"string","cost":0}]}. Unidades válidas: pza,m²,m,m³,kg,lt,rollo,bolsa,galón,global. Precios en MXN para Ensenada BC México.',
         messages: [{ role: 'user', content: prompt }]
       })
     });
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error?.message || `Error ${response.status}`);
-    }
-
-    const data = await response.json();
-    const rawText = data.content
-      .filter(b => b.type === 'text')
-      .map(b => b.text)
-      .join('');
-     const match = rawText.match(/\{[\s\S]*\}/);
-     const clean = match ? match[0] : rawText.replace(/```json|```/gi, '').trim();
-
-    let budget;
-    try {
-      budget = JSON.parse(clean);
-    } catch {
-      throw new Error('La IA no devolvió un JSON válido. Intenta con una descripción más detallada.');
-    }
-
-    // Validar estructura mínima
-    if (!budget.name) throw new Error('El presupuesto generado no tiene nombre de obra.');
-
-    // Agregar IDs a materiales y etapas
+    const text = await res.text();
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('Sin respuesta válida');
+    const budget = JSON.parse(jsonMatch[0]);
+    if (!budget.name) throw new Error('Presupuesto sin nombre');
     (budget.mats || []).forEach(m => { m.id = uid(); });
     (budget.etapas || []).forEach(e => { e.id = uid(); });
-
-    // Cerrar modal y cargar en el formulario de edición
     closeModalById('modal-ai-gen');
     loadAIBudget(budget);
-
   } catch (err) {
-    showAIError(err.message || 'Ocurrió un error. Verifica tu conexión e intenta de nuevo.');
+    showAIError('Error: ' + err.message);
     btn.disabled = false;
-    document.getElementById('ai-btn-text').innerHTML = 'Generar presupuesto';
+    document.getElementById('ai-btn-text').textContent = 'Generar presupuesto';
   }
 }
 
