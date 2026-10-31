@@ -22,7 +22,7 @@ export default async (req, context) => {
     });
 
     const text = await response.text();
-    
+    console.log('RESPUESTA CLAUDE:', text);
     return new Response(text, {
       status: response.status,
       headers: { 
