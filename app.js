@@ -1075,7 +1075,8 @@ Reglas importantes:
       .join('');
 
     // Limpiar posibles backticks si el modelo los incluyó
-    const clean = rawText.replace(/```json|```/gi, '').trim();
+   const match = raw.match(/\{[\s\S]*\}/);
+   const clean = match ? match[0] : raw.replace(/```json|```/gi, '').trim();
     let budget;
     try {
       budget = JSON.parse(clean);
