@@ -215,8 +215,8 @@ function editBudget(id) {
   const b = db.budgets.find(x => x.id === id);
   if (!b) return;
   currentBudgetId = id;
-  currentMats     = JSON.parse(JSON.stringify(b.mats   || []));
-  currentEtapas   = JSON.parse(JSON.stringify(b.etapas || []));
+  currentMats     = JSON.(JSON.stringify(b.mats   || []));
+  currentEtapas   = JSON.(JSON.stringify(b.etapas || []));
   document.getElementById('edit-title').textContent    = 'Editar Presupuesto';
   document.getElementById('f-name').value    = b.name    || '';
   document.getElementById('f-variant').value = b.variant || '';
@@ -1022,7 +1022,8 @@ async function generateWithAI() {
     });
     const text = await res.text();
     const data = JSON.parse(text);
-    const budget = JSON.parse(data.content[0].text);
+    const fixed = data.content[0].text.replace(/"price">[0-9]/g, (m) => m.replace('>', ':'));
+const budget = JSON.parse(fixed);
     (budget.mats || []).forEach(m => { m.id = uid(); });
     (budget.etapas || []).forEach(e => { e.id = uid(); });
     closeModalById('modal-ai-gen');
