@@ -215,8 +215,8 @@ function editBudget(id) {
   const b = db.budgets.find(x => x.id === id);
   if (!b) return;
   currentBudgetId = id;
-  currentMats     = JSON.(JSON.stringify(b.mats   || []));
-  currentEtapas   = JSON.(JSON.stringify(b.etapas || []));
+  currentMats     = JSON.parse(JSON.stringify(b.mats   || []));
+  currentEtapas   = JSON.parse(JSON.stringify(b.etapas || []));
   document.getElementById('edit-title').textContent    = 'Editar Presupuesto';
   document.getElementById('f-name').value    = b.name    || '';
   document.getElementById('f-variant').value = b.variant || '';
@@ -1009,6 +1009,7 @@ async function generateWithAI() {
   btn.disabled = true;
   document.getElementById('ai-btn-text').innerHTML = '<span class="ai-spinner"></span>Generando…';
   document.getElementById('ai-error').classList.add('hidden');
+
   try {
     const res = await fetch('/api/ai-generate', {
       method: 'POST',
@@ -1016,23 +1017,29 @@ async function generateWithAI() {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 4000,
-        system: 'Eres experto en construcción en México. Responde ÚNICAMENTE con JSON válido, sin texto adicional, sin backticks, sin explicaciones. Estructura: {"name":"string","variant":"string","notes":"string","mats":[{"name":"string","store":"string","qty":1,"unit":"pza","price":0}],"etapas":[{"name":"string","activities":"string","days":"string","cost":0}]}. Unidades válidas: pza,m²,m,m³,kg,lt,rollo,bolsa,galón,global. Precios en MXN para Ensenada BC México.',
+        system: 'Eres experto en construccion en Mexico. Genera presupuestos en JSON. Responde UNICAMENTE con el objeto JSON, sin texto adicional, sin backticks, sin explicaciones. Usa siempre dos puntos : para separar clave y valor, NUNCA uses >. Estructura: {"name":"string","variant":"string","notes":"string","mats":[{"name":"string","store":"string","qty":1,"unit":"pza","price":100}],"etapas":[{"name":"string","activities":"string","days":"string","cost":1000}]}',
         messages: [{ role: 'user', content: prompt }]
       })
     });
-    const text = await res.text();
-    const data = JSON.parse(text);
-    const fixed = data.content[0].text.replace(/"price">[0-9]/g, (m) => m.replace('>', ':'));
-const budget = JSON.parse(fixed);
+
+    const outer = await res.json();
+    let raw = outer.content[0].text;
+    raw = raw.replace(/```json/gi, '').replace(/```/gi, '').trim();
+    // Corregir bug donde Claude escribe "price">NUM en lugar de "price":NUM
+    raw = raw.replace(/"([^"]+)">\s*(\d)/g, '"$1":$2');
+    const budget = JSON.parse(raw);
     (budget.mats || []).forEach(m => { m.id = uid(); });
     (budget.etapas || []).forEach(e => { e.id = uid(); });
     closeModalById('modal-ai-gen');
     loadAIBudget(budget);
+
   } catch (err) {
     showAIError('Error: ' + err.message);
     btn.disabled = false;
     document.getElementById('ai-btn-text').textContent = 'Generar presupuesto';
   }
+}
+
 }
 
 function loadAIBudget(budget) {
