@@ -1015,7 +1015,7 @@ async function generateWithAI() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 2000,
+        max_tokens: 4000,
         system: 'Eres experto en construcción en México. Responde ÚNICAMENTE con JSON válido, sin texto adicional, sin backticks, sin explicaciones. Estructura: {"name":"string","variant":"string","notes":"string","mats":[{"name":"string","store":"string","qty":1,"unit":"pza","price":0}],"etapas":[{"name":"string","activities":"string","days":"string","cost":0}]}. Unidades válidas: pza,m²,m,m³,kg,lt,rollo,bolsa,galón,global. Precios en MXN para Ensenada BC México.',
         messages: [{ role: 'user', content: prompt }]
       })
