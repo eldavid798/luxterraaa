@@ -1040,8 +1040,6 @@ async function generateWithAI() {
   }
 }
 
-}
-
 function loadAIBudget(budget) {
   // Inicializar pantalla de edición con datos de IA
   currentBudgetId = null;
