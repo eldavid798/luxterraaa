@@ -1036,7 +1036,7 @@ Reglas importantes:
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: 'claude-haiku-5-5',
         max_tokens: 4000,
         system: systemPrompt,
         messages: [{ role: 'user', content: prompt }]
