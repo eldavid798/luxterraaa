@@ -676,6 +676,8 @@ function generatePDF() {
   const folio   = document.getElementById('f-folio').value   || '';
   const notes   = document.getElementById('f-notes').value   || '';
   const s       = db.settings;
+  const company = s.company || 'LUXTERRA';
+  const city    = s.city    || '';
 
   const matTotal   = totalMats(currentMats);
   const laborTotal = totalEtapas(currentEtapas);
@@ -703,9 +705,16 @@ function generatePDF() {
       <td class="num total-cell">$${Number(e.cost).toLocaleString('es-MX',{minimumFractionDigits:2})}</td>
     </tr>`; }).join('');
 
-  const logoHtml = s.logo
-    ? `<img src="${s.logo}" class="pdf-logo" alt="Logo"/>`
-    : `<div class="pdf-company-text">${s.company || 'PRESUPUESTO DE OBRA'}</div>`;
+  // Header azul con logo centrado — igual en todas las páginas
+  const headerHtml = s.logo
+    ? `<div class="pdf-header"><img src="${s.logo}" class="pdf-logo" alt="${company}"/>${s.slogan ? `<div class="pdf-slogan">— ${s.slogan} —</div>` : ''}</div>`
+    : `<div class="pdf-header"><div class="pdf-company-text">${company}</div>${s.slogan ? `<div class="pdf-slogan">— ${s.slogan} —</div>` : ''}</div>`;
+
+  // Marca de agua diagonal
+  const watermark = `<div class="watermark" aria-hidden="true"><div class="wm-name">${company}</div>${s.slogan ? `<div class="wm-slogan">${s.slogan.toUpperCase()}</div>` : ''}</div>`;
+
+  // Footer igual en todas las páginas
+  const footer = (n) => `<div class="pdf-footer"><span>${company}${city ? ' | ' + city : ''}</span><span>Página ${n}</span></div>`;
 
   const html = `<!DOCTYPE html>
 <html lang="es">
@@ -719,253 +728,224 @@ body { font-family:'Inter',sans-serif; color:#1C1C1C; font-size:9.5pt; backgroun
 .page { padding:28px 36px; min-height:100vh; position:relative; }
 .page-break { page-break-after:always; }
 
-/* Encabezado */
-.pdf-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:14px; border-bottom:3px solid #1C1C1C; }
-.pdf-logo { max-height:55px; max-width:180px; object-fit:contain; }
-.pdf-company-text { font-size:20pt; font-weight:800; letter-spacing:-0.5px; }
-.pdf-slogan { font-size:7.5pt; color:#888; margin-top:3px; letter-spacing:.08em; text-transform:uppercase; }
-.folio-box { text-align:right; }
-.folio-box .folio-num { font-size:13pt; font-weight:800; }
-.folio-box .folio-date { font-size:8pt; color:#666; margin-top:3px; }
-.page-num { position:absolute; top:16px; right:16px; background:#1a3a5c; color:#fff; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:9pt; font-weight:700; }
+/* ═══ RESET ═══ */
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Inter',sans-serif; color:#1C1C1C; font-size:9.5pt; background:#fff; }
 
-/* Info box */
-.info-box { border:1.5px solid #1a3a5c; margin-bottom:22px; }
-.info-box-header { background:#1a3a5c; color:#fff; padding:6px 12px; font-size:8pt; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
-.info-box-body { padding:10px 12px; font-size:9pt; line-height:1.7; }
-.info-box-body a { color:#1a3a5c; }
+/* ═══ PÁGINA ═══ */
+.page { position:relative; overflow:hidden; page-break-after:always; display:flex; flex-direction:column; min-height:100vh; }
+.page:last-child { page-break-after:auto; }
+.page-content { padding:24px 36px 70px; position:relative; z-index:1; flex:1; }
 
-/* Texto presentación */
-.pres-section { margin:16px 0; }
-.pres-title { font-size:14pt; font-weight:800; margin-bottom:14px; }
-.pres-p { margin-bottom:9px; line-height:1.6; }
-.pres-pillars { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin:18px 0; }
-.pillar { border-left:3px solid #1a3a5c; padding-left:10px; }
-.pillar-title { font-weight:700; font-size:9.5pt; margin-bottom:3px; }
-.pillar-desc  { font-size:8.5pt; color:#555; line-height:1.5; }
+/* ═══ MARCA DE AGUA ═══ */
+.watermark { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-35deg); text-align:center; pointer-events:none; z-index:0; opacity:0.055; user-select:none; }
+.wm-name { font-size:60pt; font-weight:900; letter-spacing:4px; color:#1a3a5c; line-height:1; }
+.wm-slogan { font-size:12pt; font-weight:700; letter-spacing:6px; color:#1a3a5c; margin-top:6px; }
 
-/* Sección título */
-.section-title { font-size:13pt; font-weight:700; margin:18px 0 12px; }
+/* ═══ HEADER AZUL ═══ */
+.pdf-header { background:#1a3a5c; color:#fff; padding:16px 36px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.pdf-logo { max-height:50px; max-width:200px; object-fit:contain; filter:brightness(0) invert(1); }
+.pdf-company-text { font-size:20pt; font-weight:900; letter-spacing:3px; color:#fff; }
+.pdf-slogan { font-size:7pt; color:rgba(255,255,255,0.65); letter-spacing:.14em; margin-top:1px; }
 
-/* Tablas */
+/* ═══ FOOTER ═══ */
+.pdf-footer { position:absolute; bottom:0; left:0; right:0; background:#1a3a5c; color:rgba(255,255,255,0.8); padding:7px 36px; font-size:7.5pt; display:flex; justify-content:space-between; align-items:center; letter-spacing:.04em; text-transform:uppercase; z-index:2; }
+
+/* ═══ TABLA CLIENTE (pág 1) ═══ */
+.client-table { width:100%; border-collapse:collapse; margin:20px 0 18px; }
+.client-table td { padding:8px 12px; border:1px solid #dce4ef; font-size:9pt; }
+.client-table .ct-label { background:#f0f4f8; font-weight:700; font-size:7.5pt; text-transform:uppercase; letter-spacing:.05em; color:#1a3a5c; width:28%; }
+
+/* ═══ TÍTULO OBRA ═══ */
+.obra-title { font-size:20pt; font-weight:800; margin:20px 0 4px; line-height:1.2; }
+.obra-sub { font-size:10pt; color:#555; margin-bottom:16px; }
+
+/* ═══ PILARES ═══ */
+.pres-p { margin-bottom:9px; line-height:1.6; font-size:9.5pt; }
+.pres-pillars { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0; margin:14px 0; border:1px solid #dce4ef; }
+.pillar { padding:12px 14px; border-right:1px solid #dce4ef; }
+.pillar:last-child { border-right:none; }
+.pillar-title { background:#1a3a5c; color:#fff; padding:4px 8px; font-size:7.5pt; font-weight:700; text-transform:uppercase; letter-spacing:.07em; margin-bottom:7px; }
+.pillar-desc { font-size:8.5pt; color:#444; line-height:1.5; }
+
+/* ═══ BARRA TOTALES (pág 1) ═══ */
+.totals-bar { display:grid; grid-template-columns:1fr 1fr 1fr; border:1px solid #dce4ef; margin-top:18px; }
+.tot-cell { padding:10px 14px; border-right:1px solid #dce4ef; }
+.tot-cell:last-child { border-right:none; background:#1a3a5c; }
+.tot-label { font-size:7pt; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#1a3a5c; margin-bottom:3px; }
+.tot-cell:last-child .tot-label { color:rgba(255,255,255,0.7); }
+.tot-value { font-size:13pt; font-weight:800; }
+.tot-cell:last-child .tot-value { color:#fff; }
+
+/* ═══ SECCIÓN TÍTULO ═══ */
+.section-title { font-size:17pt; font-weight:800; margin:0 0 16px; }
+
+/* ═══ TABLAS ═══ */
 table { width:100%; border-collapse:collapse; margin-bottom:10px; }
 .tbl-header { background:#1a3a5c; color:#fff; }
-.tbl-header th { padding:7px 8px; font-size:7.5pt; text-transform:uppercase; letter-spacing:.04em; text-align:left; font-weight:600; }
-td { padding:6px 8px; font-size:8.5pt; border-bottom:1px solid #eee; vertical-align:top; }
+.tbl-header th { padding:8px 10px; font-size:7.5pt; text-transform:uppercase; letter-spacing:.05em; text-align:left; font-weight:600; }
+td { padding:7px 10px; font-size:8.5pt; border-bottom:1px solid #eee; vertical-align:top; }
 tr:nth-child(even) td { background:#f7f8fc; }
 .num { text-align:right; }
-.total-cell { font-weight:600; }
-.etapa-name-cell { font-weight:600; width:22%; }
-.acts-cell { width:48%; }
-.act-line { display:block; font-size:8pt; color:#444; line-height:1.5; }
+.tbl-total-row td { background:#f0f4f8 !important; font-weight:700; border-top:2px solid #1a3a5c; font-size:9.5pt; }
+.act-line { display:block; font-size:8pt; color:#444; line-height:1.55; }
 .act-line::before { content:'• '; }
 
-/* Tabla total material */
-.tbl-total-row td { background:#f0f4f8 !important; font-weight:700; border-top:2px solid #1a3a5c; }
+/* ═══ RESUMEN (pág 4) ═══ */
+.resumen-table { width:100%; border-collapse:collapse; margin-bottom:20px; }
+.resumen-table td { padding:9px 12px; border-bottom:1px solid #eee; font-size:10pt; }
+.resumen-table td:last-child { text-align:right; font-weight:600; }
+.resumen-total td { background:#1a3a5c !important; color:#fff !important; font-weight:800; font-size:12pt; border:none; }
 
-/* Presupuesto final */
-.pres-final { margin:22px 0 16px; }
-.pres-final-title { background:#1a3a5c; color:#fff; padding:7px 12px; font-size:9pt; font-weight:700; letter-spacing:.06em; text-transform:uppercase; text-align:center; }
-.pres-final-table { width:100%; border-collapse:collapse; }
-.pres-final-table td { padding:8px 12px; border-bottom:1px solid #e0e0e0; font-size:10pt; }
-.pres-final-table td:last-child { text-align:right; font-weight:600; }
-.pres-final-total td { background:#F5B800; font-weight:800; font-size:12pt; }
+/* ═══ NOTAS ═══ */
+.notes-box { border-left:3px solid #1a3a5c; padding:10px 14px; margin:14px 0; font-size:8.5pt; color:#444; background:#f8f9fb; line-height:1.6; }
 
-/* Entrega */
-.entrega-section { margin:18px 0; }
-.entrega-section h2 { font-size:12pt; font-weight:800; margin-bottom:10px; }
+/* ═══ ENTREGA ═══ */
+.entrega-section { margin:18px 0 14px; }
+.entrega-section h2 { font-size:12pt; font-weight:800; margin-bottom:8px; }
 .check-list { list-style:none; }
-.check-list li { padding:4px 0; font-size:9.5pt; }
-.check-list li::before { content:'✓ '; font-weight:700; }
+.check-list li { padding:5px 0; font-size:9.5pt; }
+.check-list li::before { content:'✓ '; font-weight:800; color:#1a3a5c; }
 
-/* Firma */
-.firma-section { margin:22px 0; }
-.firma-section h2 { font-size:12pt; font-weight:800; margin-bottom:14px; }
-.firma-grid { display:grid; grid-template-columns:1fr 1fr; gap:40px; }
-.firma-block h3 { font-size:9pt; font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-bottom:14px; }
-.firma-line { border-bottom:1.5px solid #1a3a5c; margin-bottom:6px; height:28px; }
-.firma-label { font-size:8pt; color:#888; }
+/* ═══ FIRMAS ═══ */
+.firma-section h2 { font-size:12pt; font-weight:800; margin-bottom:16px; }
+.firma-grid { display:grid; grid-template-columns:1fr 1fr; gap:50px; }
+.firma-block h3 { font-size:8.5pt; font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:16px; color:#1a3a5c; border-bottom:2px solid #1a3a5c; padding-bottom:5px; }
+.firma-line { border-bottom:1.5px solid #bbb; margin-bottom:4px; height:30px; }
+.firma-label { font-size:7.5pt; color:#999; margin-bottom:14px; }
 
-/* Contacto */
-.contact-section { text-align:center; padding:24px 0 12px; }
-.contact-logo-wrap { margin-bottom:10px; }
-.contact-logo { max-height:60px; max-width:200px; object-fit:contain; }
-.contact-company { font-size:14pt; font-weight:800; margin-bottom:4px; }
-.contact-slogan { font-size:8pt; color:#888; letter-spacing:.08em; text-transform:uppercase; margin-bottom:16px; }
-.contact-divider { border:none; border-bottom:2px solid #1a3a5c; width:60%; margin:10px auto; }
-.contact-items { display:flex; justify-content:center; flex-wrap:wrap; gap:10px 28px; margin-top:12px; }
-.contact-item { font-size:9pt; display:flex; align-items:center; gap:5px; }
-.contact-tagline { margin-top:20px; font-size:9pt; color:#555; font-style:italic; }
-
-/* Notas */
-.notes-box { border-top:1px solid #ddd; padding-top:10px; margin-top:14px; font-size:8pt; color:#555; }
-
-/* Print */
+/* ═══ PRINT ═══ */
 @media print {
-  @page { margin:14mm 16mm; }
-  .page-break { page-break-after:always; }
+  @page { margin:0; size:letter; }
+  .page { page-break-after:always; min-height:100vh; }
+  .page:last-child { page-break-after:auto; }
 }
 </style>
 </head>
 <body>
 
-<!-- ═══ PÁGINA 1: PRESENTACIÓN ═══ -->
-<div class="page page-break">
-  <div class="page-num">1</div>
-  <div class="pdf-header">
-    <div>
-      ${logoHtml}
-      ${s.slogan ? `<div class="pdf-slogan">${s.slogan}</div>` : ''}
-    </div>
-    <div class="folio-box">
-      ${folio ? `<div class="folio-num">Folio: ${folio}</div>` : ''}
-      <div class="folio-date">Fecha: ${date}</div>
-    </div>
-  </div>
+<!-- ═══════════ PÁGINA 1: PORTADA ═══════════ -->
+<div class="page">
+  ${watermark}
+  ${headerHtml}
+  <div class="page-content">
+    <div class="obra-title">${name}</div>
+    ${variant ? `<div class="obra-sub">${variant}</div>` : ''}
 
-  <div class="info-box">
-    <div class="info-box-header">Información</div>
-    <div class="info-box-body">
-      ${s.rep ? `<strong>${s.rep}</strong><br/>` : ''}
-      ${s.email ? `Email: <a href="mailto:${s.email}">${s.email}</a><br/>` : ''}
-      ${s.phone ? `Celular: ${s.phone}` : ''}${s.phone2 ? ` · ${s.phone2}` : ''}<br/>
-      <br/>
-      <strong>Nombre:</strong> ${client}<br/>
-      ${email ? `<strong>Email cliente:</strong> ${email}<br/>` : ''}
-      ${phone !== '—' ? `<strong>Teléfono:</strong> ${phone}<br/>` : ''}
-      <strong>Proyecto:</strong> ${name}${variant ? ' — ' + variant : ''}
-    </div>
-  </div>
+    <table class="client-table">
+      <tr>
+        <td class="ct-label">Cliente</td><td>${client}</td>
+        <td class="ct-label">Fecha</td><td>${date}</td>
+      </tr>
+      ${folio || s.rep ? `<tr>
+        ${folio ? `<td class="ct-label">Folio</td><td>${folio}</td>` : '<td colspan="2"></td>'}
+        ${s.rep  ? `<td class="ct-label">Representante</td><td>${s.rep}</td>` : '<td colspan="2"></td>'}
+      </tr>` : ''}
+    </table>
 
-  <div class="pres-section">
-    <div class="pres-title">${s.company || 'PRESUPUESTO DE OBRA'}</div>
-    <p class="pres-p">Entendemos que cada proyecto es una inversión importante.</p>
-    <p class="pres-p">Por ello trabajamos bajo tres principios fundamentales:</p>
+    <p class="pres-p">Entendemos que cada proyecto es una inversión importante. Por ello trabajamos bajo tres principios fundamentales:</p>
     <div class="pres-pillars">
-      <div class="pillar">
-        <div class="pillar-title">Diseño</div>
-        <div class="pillar-desc">Desarrollamos soluciones funcionales y modernas.</div>
-      </div>
-      <div class="pillar">
-        <div class="pillar-title">Calidad</div>
-        <div class="pillar-desc">Utilizamos materiales de primera y mano de obra especializada.</div>
-      </div>
-      <div class="pillar">
-        <div class="pillar-title">Durabilidad</div>
-        <div class="pillar-desc">Construimos espacios pensados para permanecer y agregar valor a la propiedad.</div>
-      </div>
+      <div class="pillar"><div class="pillar-title">Diseño</div><div class="pillar-desc">Desarrollamos soluciones funcionales y modernas.</div></div>
+      <div class="pillar"><div class="pillar-title">Calidad</div><div class="pillar-desc">Utilizamos materiales de primera y mano de obra especializada.</div></div>
+      <div class="pillar"><div class="pillar-title">Durabilidad</div><div class="pillar-desc">Construimos espacios pensados para permanecer y agregar valor a la propiedad.</div></div>
     </div>
     <p class="pres-p">Nuestro compromiso es entregar proyectos con altos estándares de calidad, cuidando cada detalle desde la planeación hasta la entrega final.</p>
-  </div>
-</div>
 
-<!-- ═══ PÁGINA 2: MATERIALES + MANO DE OBRA ═══ -->
-<div class="page page-break">
-  <div class="page-num">2</div>
-  <div class="pdf-header">
-    ${logoHtml}
-    <div class="folio-box">
-      <div class="folio-num">${name}${variant ? ' — ' + variant : ''}</div>
-      <div class="folio-date">Cliente: ${client}</div>
+    <div class="totals-bar">
+      <div class="tot-cell"><div class="tot-label">Materiales</div><div class="tot-value">$${Number(matTotal).toLocaleString('es-MX',{minimumFractionDigits:2})}</div></div>
+      <div class="tot-cell"><div class="tot-label">Mano de obra</div><div class="tot-value">$${Number(laborTotal).toLocaleString('es-MX',{minimumFractionDigits:2})}</div></div>
+      <div class="tot-cell"><div class="tot-label">Total</div><div class="tot-value">$${Number(total).toLocaleString('es-MX',{minimumFractionDigits:2})}</div></div>
     </div>
   </div>
+  ${footer(1)}
+</div>
 
-  ${currentMats.length ? `
-  <div class="section-title">Lista de Materiales</div>
-  <table>
-    <thead class="tbl-header">
-      <tr><th>Material</th><th>Tienda</th><th>Cant.</th><th>Unid.</th><th>P. Unit.</th><th>Total</th></tr>
-    </thead>
-    <tbody>
-      ${matRows}
-      <tr class="tbl-total-row"><td colspan="5">Total Material</td><td class="num">$${Number(matTotal).toLocaleString('es-MX',{minimumFractionDigits:2})}</td></tr>
-    </tbody>
-  </table>` : ''}
-
-  ${currentEtapas.length ? `
-  <div class="section-title" style="margin-top:22px">Mano de Obra</div>
-  <table>
-    <thead class="tbl-header">
-      <tr><th>Etapa</th><th>Actividades</th><th>Tiempo</th><th>Costo</th></tr>
-    </thead>
-    <tbody>
-      ${etapaRows}
-      <tr class="tbl-total-row"><td colspan="3">Subtotal Mano de Obra</td><td class="num">$${Number(laborTotal).toLocaleString('es-MX',{minimumFractionDigits:2})}</td></tr>
-    </tbody>
-  </table>` : ''}
-
-  <div class="pres-final">
-    <div class="pres-final-title">Presupuesto Final</div>
-    <table class="pres-final-table">
-      <tr><td>Materiales</td><td>$${Number(matTotal).toLocaleString('es-MX',{minimumFractionDigits:2})}</td></tr>
-      <tr><td>Total mano de obra</td><td>$${Number(laborTotal).toLocaleString('es-MX',{minimumFractionDigits:2})}</td></tr>
-      <tr class="pres-final-total"><td>Total</td><td>$${Number(total).toLocaleString('es-MX',{minimumFractionDigits:2})}</td></tr>
+<!-- ═══════════ PÁGINA 2: MATERIALES ═══════════ -->
+${currentMats.length ? `
+<div class="page">
+  ${watermark}
+  ${headerHtml}
+  <div class="page-content">
+    <div class="section-title">Lista de materiales</div>
+    <table>
+      <thead class="tbl-header">
+        <tr><th>Material</th><th>Proveedor</th><th>Cant.</th><th>Unid.</th><th>P. Unit.</th><th>Total</th></tr>
+      </thead>
+      <tbody>
+        ${matRows}
+        <tr class="tbl-total-row"><td colspan="5"><strong>Total Materiales</strong></td><td class="num">$${Number(matTotal).toLocaleString('es-MX',{minimumFractionDigits:2})}</td></tr>
+      </tbody>
     </table>
   </div>
+  ${footer(2)}
+</div>` : ''}
 
-  ${notes ? `<div class="notes-box"><strong>Notas y condiciones:</strong><br/>${notes}</div>` : ''}
-</div>
-
-<!-- ═══ PÁGINA 3: ENTREGA + FIRMA ═══ -->
-<div class="page page-break">
-  <div class="page-num">3</div>
-  <div class="pdf-header">
-    ${logoHtml}
-    <div class="folio-box">
-      <div class="folio-num">${folio || name}</div>
-      <div class="folio-date">${date}</div>
-    </div>
-  </div>
-
-  <div class="entrega-section">
-    <h2>ENTREGA DEL PROYECTO</h2>
-    <p style="margin-bottom:12px;font-size:9.5pt;">La obra será entregada:</p>
-    <ul class="check-list">
-      <li>Limpia.</li>
-      <li>Funcionando al 100%.</li>
-      <li>Con revisión conjunta con el cliente.</li>
-      <li>Lista para su uso inmediato.</li>
-    </ul>
-  </div>
-
-  <div class="firma-section">
-    <h2>ACEPTACIÓN DE LA PROPUESTA</h2>
-    <div class="firma-grid">
-      <div class="firma-block">
-        <h3>Cliente</h3>
-        <div style="margin-bottom:12px"><div class="firma-label">Nombre</div><div class="firma-line"></div></div>
-        <div style="margin-bottom:12px"><div class="firma-label">Firma</div><div class="firma-line"></div></div>
-        <div><div class="firma-label">Fecha</div><div class="firma-line"></div></div>
-      </div>
-      <div class="firma-block">
-        <h3>${s.company || 'Contratista'}</h3>
-        <div style="margin-bottom:12px"><div class="firma-label">Representante</div><div class="firma-line"></div></div>
-        <div style="margin-bottom:12px"><div class="firma-label">Firma</div><div class="firma-line"></div></div>
-        <div><div class="firma-label">Fecha</div><div class="firma-line"></div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ PÁGINA 4: CONTACTO ═══ -->
+<!-- ═══════════ PÁGINA 3: MANO DE OBRA ═══════════ -->
+${currentEtapas.length ? `
 <div class="page">
-  <div class="page-num">4</div>
-  <div class="contact-section">
-    <div class="contact-logo-wrap">
-      ${s.logo ? `<img src="${s.logo}" class="contact-logo" alt="Logo"/>` : ''}
-    </div>
-    <div class="contact-company">${s.company || ''}</div>
-    ${s.slogan ? `<div class="contact-slogan">${s.slogan}</div>` : ''}
-    <hr class="contact-divider"/>
-    <div class="contact-items">
-      ${s.phone ? `<div class="contact-item">📞 ${s.phone}</div>` : ''}
-      ${s.phone2 ? `<div class="contact-item">📞 ${s.phone2}</div>` : ''}
-      ${s.email ? `<div class="contact-item">✉️ ${s.email}</div>` : ''}
-      ${s.city ? `<div class="contact-item">📍 ${s.city}</div>` : ''}
-      ${s.instagram ? `<div class="contact-item">📷 ${s.instagram}</div>` : ''}
-    </div>
-    ${s.slogan ? `<div class="contact-tagline">"Construimos espacios con diseño, calidad y durabilidad"</div>` : ''}
+  ${watermark}
+  ${headerHtml}
+  <div class="page-content">
+    <div class="section-title">Mano de obra</div>
+    <table>
+      <thead class="tbl-header">
+        <tr><th>Etapa</th><th>Actividades</th><th>Tiempo</th><th>Costo</th></tr>
+      </thead>
+      <tbody>
+        ${etapaRows}
+        <tr class="tbl-total-row"><td colspan="3"><strong>Total Mano de Obra</strong></td><td class="num">$${Number(laborTotal).toLocaleString('es-MX',{minimumFractionDigits:2})}</td></tr>
+      </tbody>
+    </table>
   </div>
+  ${footer(3)}
+</div>` : ''}
+
+<!-- ═══════════ PÁGINA 4: RESUMEN + ENTREGA + FIRMAS ═══════════ -->
+<div class="page">
+  ${watermark}
+  ${headerHtml}
+  <div class="page-content">
+    <div class="section-title">Resumen y aceptación</div>
+    <table class="resumen-table">
+      <tbody>
+        <tr><td>Materiales</td><td>$${Number(matTotal).toLocaleString('es-MX',{minimumFractionDigits:2})}</td></tr>
+        <tr><td>Mano de obra</td><td>$${Number(laborTotal).toLocaleString('es-MX',{minimumFractionDigits:2})}</td></tr>
+        <tr class="resumen-total"><td><strong>Total del Presupuesto</strong></td><td><strong>$${Number(total).toLocaleString('es-MX',{minimumFractionDigits:2})}</strong></td></tr>
+      </tbody>
+    </table>
+
+    ${notes ? `<div class="notes-box"><strong>Notas y condiciones:</strong><br/>${notes}</div>` : ''}
+
+    <div class="entrega-section">
+      <h2>Entrega del proyecto</h2>
+      <p style="margin-bottom:10px;font-size:9.5pt;">La obra será entregada:</p>
+      <ul class="check-list">
+        <li>Limpia.</li>
+        <li>Funcionando al 100%.</li>
+        <li>Con revisión conjunta con el cliente.</li>
+        <li>Lista para su uso inmediato.</li>
+      </ul>
+    </div>
+
+    <div class="firma-section">
+      <h2>Aceptación de la propuesta</h2>
+      <div class="firma-grid">
+        <div class="firma-block">
+          <h3>Cliente</h3>
+          <div class="firma-label">Nombre</div><div class="firma-line"></div>
+          <div class="firma-label">Firma</div><div class="firma-line"></div>
+          <div class="firma-label">Fecha</div><div class="firma-line"></div>
+        </div>
+        <div class="firma-block">
+          <h3>${s.rep || company}</h3>
+          <div class="firma-label">Representante</div><div class="firma-line"></div>
+          <div class="firma-label">Firma</div><div class="firma-line"></div>
+          <div class="firma-label">Fecha</div><div class="firma-line"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  ${footer(4)}
 </div>
 
 <script>window.onload = () => { window.print(); }<\/script>
