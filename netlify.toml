@@ -1,6 +1,9 @@
 [build]
   functions = "netlify/functions"
 
+[functions."ai-generate"]
+  timeout = 30
+
 [[headers]]
   for = "/*"
   [headers.values]
