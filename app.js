@@ -1038,6 +1038,7 @@ Reglas importantes:
       body: JSON.stringify({
         model: 'claude-haiku-5-5',
         max_tokens: 4000,
+        thinking: { type: 'disabled' },
         system: systemPrompt,
         messages: [{ role: 'user', content: prompt }]
       })
