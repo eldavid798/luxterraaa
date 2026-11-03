@@ -744,7 +744,7 @@ body { font-family:'Inter',sans-serif; color:#1C1C1C; font-size:9.5pt; backgroun
 
 /* ═══ HEADER AZUL ═══ */
 .pdf-header { background:#1a3a5c; color:#fff; padding:16px 36px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:4px; }
-.pdf-logo { max-height:50px; max-width:200px; object-fit:contain; filter:brightness(0) invert(1); }
+.pdf-logo { max-height:54px; max-width:180px; object-fit:contain; background:#fff; padding:5px 12px; border-radius:5px; }
 .pdf-company-text { font-size:20pt; font-weight:900; letter-spacing:3px; color:#fff; }
 .pdf-slogan { font-size:7pt; color:rgba(255,255,255,0.65); letter-spacing:.14em; margin-top:1px; }
 
@@ -817,16 +817,12 @@ tr:nth-child(even) td { background:#f7f8fc; }
 /* ═══ PRINT ═══ */
 @media print {
   @page { margin:0; size:letter; }
-  .page { page-break-after:always; min-height:100vh; }
+  .page { page-break-after:always; }
   .page:last-child { page-break-after:auto; }
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
-  }
-  .pdf-logo {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 }
 </style>
