@@ -92,15 +92,6 @@ function openScreen(id) {
     case 'screen-clients':  renderClients(); break;
     case 'screen-settings': loadSettings();  break;
   }
-  // Sync desktop
-  const titles = {'screen-home':'Inicio','screen-budgets':'Presupuestos','screen-clients':'Clientes','screen-settings':'Configuración','screen-budget-edit':'Editar Presupuesto'};
-  const tb = document.getElementById('desktop-topbar-title');
-  if (tb) tb.textContent = titles[id] || '';
-  const map = {'screen-home':'home','screen-budgets':'budgets','screen-clients':'clients','screen-settings':'settings','screen-budget-edit':'edit'};
-  ['home','budgets','clients','settings','edit'].forEach(k => { const b = document.getElementById('snav-'+k); if(b) b.classList.remove('active'); });
-  const ak = map[id]; if (ak) { const b = document.getElementById('snav-'+ak); if(b) b.classList.add('active'); }
-  const eb = document.getElementById('snav-edit');
-  if (eb) eb.style.display = id === 'screen-budget-edit' ? 'flex' : 'none';
 }
 
 /* ══════════════════════════════════════════
@@ -1118,34 +1109,12 @@ function showAIError(msg) {
   el.textContent = msg;
   el.classList.remove('hidden');
 }
-/* ══ DESKTOP ══ */
-function isDesktop() { return window.innerWidth >= 900; }
 
-function applyLayout() {
-  const d = isDesktop();
-  const s = document.getElementById('desktop-sidebar');
-  const t = document.getElementById('desktop-topbar');
-  if (s) s.style.display = d ? 'flex' : 'none';
-  if (t) t.style.display  = d ? 'flex' : 'none';
-}
-
-function syncSidebarBrand() {
-  const s = db.settings;
-  const n = document.getElementById('sidebar-name');
-  if (n) n.textContent = s.company || 'Presupuestos';
-  const l = document.getElementById('sidebar-logo');
-  if (l) { if (s.logo) { l.src = s.logo; l.style.display = 'block'; } else { l.style.display = 'none'; } }
-}
-
-function desktopNav(id) { openScreen(id); }
 /* ══════════════════════════════════════════
    INIT
 ══════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-  applyLayout();
   renderHome();
-  syncSidebarBrand();
   const fdate = document.getElementById('f-date');
   if (fdate) fdate.value = today();
 });
-window.addEventListener('resize', applyLayout);
