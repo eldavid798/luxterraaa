@@ -819,6 +819,11 @@ tr:nth-child(even) td { background:#f7f8fc; }
   @page { margin:0; size:letter; }
   .page { page-break-after:always; min-height:100vh; }
   .page:last-child { page-break-after:auto; }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
 }
 </style>
 </head>
