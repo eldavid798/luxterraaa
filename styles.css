@@ -902,11 +902,113 @@ select.field-input { appearance: none; -webkit-appearance: none; background-imag
 }
 
 /* ══════════════════════════════════════════
-   RESPONSIVE
+   RESPONSIVE — PC / TABLET (≥768px)
 ══════════════════════════════════════════ */
-@media (min-width: 480px) {
-  .screen { max-width: 480px; margin: 0 auto; }
-  body { background: #1A1A1A; }
+@media (min-width: 768px) {
+  :root { --nav-h: 0px; }
+
+  body {
+    background: #111;
+    overflow: hidden;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  /* Wrapper centrado tipo "device frame" más ancho */
+  body::before {
+    content: '';
+    display: none;
+  }
+
+  /* Todos los screens dentro de un área central */
+  .screen {
+    position: fixed;
+    top: 0; bottom: 0;
+    left: 50%;
+    transform: translateX(calc(-50% + 100vw));
+    width: min(900px, 100vw);
+    max-width: 900px;
+    margin: 0;
+    transition: transform .28s cubic-bezier(.4,0,.2,1);
+  }
+
+  .screen.active {
+    transform: translateX(-50%);
+  }
+
+  .screen.slide-left {
+    transform: translateX(calc(-50% - 30%));
+  }
+
+  /* Topbar más ancho */
+  .topbar {
+    padding: 0 28px;
+    padding-top: 0;
+  }
+
+  /* Nav inferior se convierte en sidebar */
+  .bottom-nav {
+    position: fixed;
+    left: calc(50% - 450px - 200px);
+    top: 0;
+    bottom: 0;
+    width: 180px;
+    flex-direction: column !important;
+    height: 100% !important;
+    background: var(--concrete);
+    padding: 80px 0 20px;
+    gap: 2px;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    box-shadow: 2px 0 20px rgba(0,0,0,.3);
+    border-top: none;
+    z-index: 5;
+  }
+
+  /* Solo mostrar sidebar si la pantalla es suficientemente ancha */
+  @media (max-width: 1100px) {
+    .bottom-nav { display: none !important; }
+  }
+
+  .bottom-nav .nav-item {
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    gap: 12px;
+    padding: 13px 20px;
+    min-width: unset;
+    font-size: .9rem;
+    border-radius: 0;
+    color: var(--light);
+  }
+
+  .bottom-nav .nav-item.active {
+    background: rgba(245,184,0,.1);
+    color: var(--yellow);
+    border-left: 3px solid var(--yellow);
+    padding-left: 17px;
+  }
+
+  .bottom-nav .nav-icon { font-size: 1.1rem; }
+  .bottom-nav .nav-label { font-size: .88rem; font-weight: 600; }
+
+  /* Contenido con más espacio */
+  .screen-body {
+    padding: 24px 36px calc(24px);
+  }
+
+  /* Modales más anchos */
+  .modal-box {
+    max-width: 640px;
+    max-height: 85vh;
+    width: 90%;
+  }
+
+  /* Grid de acciones: 4 columnas */
+  .quick-actions {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 }
 /* ══════════════════════════════════════════
    ESTILOS NUEVOS v2 — Materiales / Etapas
