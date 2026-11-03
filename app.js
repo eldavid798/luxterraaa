@@ -744,7 +744,7 @@ body { font-family:'Inter',sans-serif; color:#1C1C1C; font-size:9.5pt; backgroun
 
 /* ═══ HEADER AZUL ═══ */
 .pdf-header { background:#1a3a5c; color:#fff; padding:16px 36px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:4px; }
-.pdf-logo { max-height:50px; max-width:200px; object-fit:contain; filter:brightness(0) invert(1); }
+.pdf-logo { max-height:60px; max-width:200px; object-fit:contain; background:#fff; padding:4px 10px; border-radius:4px; }
 .pdf-company-text { font-size:20pt; font-weight:900; letter-spacing:3px; color:#fff; }
 .pdf-slogan { font-size:7pt; color:rgba(255,255,255,0.65); letter-spacing:.14em; margin-top:1px; }
 
